@@ -37,31 +37,23 @@ You pay for the time the job is actually running. A quiet night, after the job i
 - An API key from [Settings](https://www.graphingest.io/settings). You will see the key once. Store it in Vercel’s environment settings. Do not put it in the code, and do not commit it.
 - A Next.js project that is already deployed to Vercel.
 
-This folder gives you the long job in two languages, plus the doorbell:
+This folder is the Python starter. It gives you two pieces:
 
-- `pipeline.py` is the long job in Python. You run it from your own computer once, to register it on [graphingest.io](https://www.graphingest.io).
-- `pipeline.ts` is the same long job in TypeScript. Use this one when the rest of your app is TypeScript.
-- `app/api/cron/sync/route.ts` is the doorbell. Copy that file into your Next.js app. It works with either pipeline.
+- `pipeline.py` is the long job. You run it from your own computer once, to register it on [graphingest.io](https://www.graphingest.io).
+- `app/api/cron/sync/route.ts` is the doorbell. Copy that file into your Next.js app.
 
 More on how jobs are written is in the [docs](https://www.graphingest.io/docs).
 
 ## How to run it
 
-Register the job with Python:
+Register the job:
 
 ```bash
 pip install -r requirements.txt
 python pipeline.py
 ```
 
-Or register the same job with TypeScript:
-
-```bash
-npm install
-npm run deploy
-```
-
-Either command registers `nightly-sync` on [graphingest.io](https://www.graphingest.io). Run one of them. Open [your flows on graphingest.io](https://www.graphingest.io/flows) and copy the flow id of `nightly-sync`.
+That registers `nightly-sync` on [graphingest.io](https://www.graphingest.io). Open [your flows on graphingest.io](https://www.graphingest.io/flows) and copy the flow id of `nightly-sync`.
 
 In the Vercel project, set these names. The values come from your [graphingest.io](https://www.graphingest.io) account, not from this page.
 
