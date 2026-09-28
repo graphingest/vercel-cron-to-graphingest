@@ -1,20 +1,64 @@
-# vercel-cron-to-graphingest
+# A nightly job that is allowed to take hours
 
-Vercel Hobby functions stop at 10 seconds. Pro stops at 60. This route only starts the pipeline. The sync runs on GraphIngest for up to two hours.
+Your website host starts a timer every time a page or a scheduled task runs. On Vercel that timer stops the work at 10 seconds on the free plan and at 60 seconds on the paid plan. A real nightly job is longer than that. Pulling yesterday’s orders, updating a catalog, or building a report can take twenty minutes. The timer wins, the job dies, and you find out in the morning.
 
-## Run
+This starter is for that situation. The schedule still lives on Vercel. The long work lives on GraphIngest.
+
+## When this fits
+
+Use it when all of these are true:
+
+- Your site is a Next.js app on Vercel.
+- Something has to happen on a clock: every night, every hour, every Monday.
+- That something takes longer than the host allows, or you are tired of guessing whether it will finish in time.
+
+Everyday cases:
+
+- A shop syncs orders, refunds, and inventory at 3 a.m.
+- A team builds a morning report from several spreadsheets.
+- A membership site refreshes profiles from an outside system once a day.
+- A cleanup walks a long list of old files and cannot finish in one minute.
+
+The schedule in this starter rings at 3:00 UTC. Change the clock in `vercel.json` to the hour you actually want.
+
+## What happens, in order
+
+1. Vercel’s clock calls one small address on your site, `/api/cron/sync`.
+2. That address asks GraphIngest to start the job, then answers immediately. The answer includes an id you can look up later.
+3. GraphIngest keeps working after your site has already replied. In this starter the job may run for up to two hours.
+4. Each source in the list is handled at the same time. If one source hiccups, that source is tried again. The others keep going.
+5. When it finishes, the run is on your GraphIngest dashboard, with the log of what happened.
+
+You pay for the time the job is actually running. A quiet night, after the job is done, does not keep a machine switched on.
+
+## What you need before you start
+
+- A GraphIngest account.
+- An API key from the dashboard, under Settings. You will see the key once. Store it in Vercel’s environment settings. Do not put it in the code, and do not commit it.
+- A Next.js project that is already deployed to Vercel.
+
+This folder gives you two pieces:
+
+- `pipeline.py` is the long job. You run it from your own computer once, to register it.
+- `app/api/cron/sync/route.ts` is the doorbell. Copy that file into your Next.js app.
+
+## How to run it
+
+Register the job:
 
 ```bash
 pip install -r requirements.txt
 python pipeline.py
 ```
 
-Copy the flow id from the dashboard into `GRAPHINGEST_FLOW_ID`.
+Open the dashboard and copy the flow id of `nightly-sync`.
 
-Copy `app/api/cron/sync/route.ts` into your Next.js app and set:
+In the Vercel project, set these names. The values come from your account, not from this page.
 
-- `GRAPHINGEST_API_KEY`
-- `GRAPHINGEST_FLOW_ID`
-- `CRON_SECRET` (optional; Vercel sends it as a bearer token)
+- `GRAPHINGEST_API_KEY` is the key from Settings.
+- `GRAPHINGEST_FLOW_ID` is the flow id from the dashboard.
+- `CRON_SECRET` is optional. If you set it, Vercel sends it with the scheduled call, and the doorbell ignores anyone who does not have it.
 
-`vercel.json` schedules the route at 03:00 UTC.
+Copy `app/api/cron/sync/route.ts` into your app at the same path. `vercel.json` tells Vercel to call that path at 3:00 UTC.
+
+Trigger the schedule once by hand, or wait for the clock. The site answers right away. The dashboard shows the run while the sync continues.
