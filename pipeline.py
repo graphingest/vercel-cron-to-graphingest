@@ -13,7 +13,8 @@ import requests
 
 @node(name="sync-source", cache_ttl=1800, max_retries=3)
 def sync_source(source: dict) -> dict:
-    resp = requests.get(source["api_url"], timeout=30)
+    api_url = source.get("api_url") or source.get("apiUrl")
+    resp = requests.get(api_url, timeout=30)
     data = resp.json()
     return {
         "source": source["name"],
